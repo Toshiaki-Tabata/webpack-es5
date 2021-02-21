@@ -2,54 +2,55 @@ const path = require('path');
 const webpack = require('webpack');
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 
-
-
-
-/*
- * We've enabled MiniCssExtractPlugin for you. This allows your app to
- * use css modules that will be moved into a separate CSS file instead of inside
- * one of your module entries!
- *
- * https://github.com/webpack-contrib/mini-css-extract-plugin
- *
- */
-
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 
+const src = './src';
 const outputPath = path.resolve(__dirname, 'dist');
 
 module.exports = {
   mode: 'development',
-  devtool: 'inline-source-map',
-  entry: './src/index.js',
+  devtool: 'source-map',
+  entry: {'index': './src/index.js'},
   output: {
-    filename: 'main.js',
-    path: outputPath
+    path: '/dist',
+    filename: '[name].js'
+//    filename: 'main.js',
+    //path: path.join(__dirname, 'dist')
   },
   devServer: {
-    contentBase: path.join(__dirname, 'src'),
+    contentBase: __dirname + '/dist',
+    inline: true,
     open: true
   },
   plugins: [
-/*    new webpack.ProgressPlugin(),*/
-    new MiniCssExtractPlugin({ filename:'main.[contenthash].css' }),
-    new HtmlWebpackPlugin()
+    new MiniCssExtractPlugin({ filename:'css/main.css' }),
+    new HtmlWebpackPlugin({
+      template: src + '/index.html',
+      filename: 'index.html'
+    })
   ],
 
   module: {
     rules: [{
       test: /\.(js|jsx)$/,
-      include: [path.resolve(__dirname, 'src')],
       use: [{
         loader: 'babel-loader',
         options: {
           presets: [
-            // プリセットを指定することで、ES2020 を ES5 に変換
-            "@babel/preset-env",
+            [
+              // プリセットを指定することで、ES2020 を ES5 に変換
+              "@babel/preset-env",
+              {
+                useBuiltIns: "usage",
+                corejs: 3,
+              }
+            ]
           ],
         }
-      }]
-    }, {
+      }],
+      exclude: /node_modules/
+    },
+    {
       test: /.(sa|sc|c)ss$/,
 
       use: [{
@@ -67,7 +68,8 @@ module.exports = {
           sourceMap: true
         }
       }]
-    }, {
+    },
+    {
       test: /\.html$/,
       loader: "html-loader"
     }]
